@@ -1,125 +1,47 @@
-<p align="center">
-  <!-- <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/docs/neosync-header.svg" > -->
-  <picture>
-  <source
-    srcset="https://assets.nucleuscloud.com/neosync/docs/neosync-header.svg"
-    media="(prefers-color-scheme: light)"
-  />
-  <source
-    srcset="https://assets.nucleuscloud.com/neosync/docs/neosync-header-dark.svg"
-    media="(prefers-color-scheme: dark), (prefers-color-scheme: no-preference)"
-  />
-  <img src="https://github-readme-stats.vercel.app/api?username=anuraghazra&show_icons=true" />
-</picture>
-</p>
+# Neosync (fork): A B2B Play for Small Business Finance
 
-<p align="center" style="font-size: 24px;font-weight: 500;">
-Open Source Data Anonymization and Synthetic Data Orchestration
-<p>
+Here's a focused B2B play built on Neosync's bones, aimed squarely at small business finance — meaning the financial operations stack of companies in the 5-to-500 employee range, plus the vendors (banks, lenders, accounting firms, fractional CFO shops, embedded finance providers) who serve them.
 
-<div align='center'>
- | <a href="https://www.neosync.dev">Website</a>
- | <a href="https://docs.neosync.dev">Docs</a>
- | <a href="https://discord.com/invite/MFAMgnp4HF">Discord</a>
- | <a href="https://www.neosync.dev/blog">Blog</a>
- | <a href="https://docs.neosync.dev/changelog">Changelog</a>
- | <a href="https://neosync.productlane.com/roadmap">Roadmap</a>
-</div>
+## The core observation
 
- <br>
+Small business finance has a structural data problem that nobody has cleanly solved. A typical SMB's financial truth is scattered across QuickBooks or Xero, a primary bank (often a community bank or a neobank like Mercury or Relay), Stripe or Square, a payroll system (Gusto, Rippling, ADP Run), a bill-pay tool (Bill.com, Ramp, Brex), and a pile of spreadsheets. Every party that needs to do something with this data — the fractional CFO building a forecast, the lender underwriting a line of credit, the bookkeeper closing the month, the AI agent now trying to automate any of the above — has to either get raw access to all of it (a privacy and security nightmare, and frequently a violation of the SMB's terms with their bank or payroll provider) or work from PDFs and CSVs that are stale the moment they're generated.
 
-<div align="center">
-  <a href='https://makeapullrequest.com'>
-    <img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/>
-  </a>
-  <img src="https://img.shields.io/github/license/lightdash/lightdash" />
-  <!-- <a href="https://codecov.io/gh/nucleuscloud/neosync">
-    <img alt="CodeCov" src="https://codecov.io/gh/nucleuscloud/neosync/graph/badge.svg?token=A35QDLRU04"/>
-    </a> -->
-  <a href="https://github.com/nucleuscloud/neosync/actions/workflows/go.yml/">
-    <img alt="Go Tests" src="https://github.com/nucleuscloud/neosync/actions/workflows/go.yml/badge.svg"/>
-  </a>
-  <a href="https://x.com/neosynccloud">
-    <img alt="Follow X" src="https://img.shields.io/twitter/follow/neosynccloud?label=Follow"/>
-  </a>
-  <a href="https://artifacthub.io/packages/search?repo=neosync">
-    <img alt="ArtifactHub Neosync" src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/neosync" />
-  </a>
-  <a href="https://gurubase.io/g/neosync">
-    <img alt="Gurubase" src="https://img.shields.io/badge/Gurubase-Ask%20Neosync%20Guru-006BFF" />
-  </a>
-</div>
+Neosync's primitives — schema introspection, FK-aware sync, deterministic anonymization, synthetic generation, Temporal orchestration — are unusually well-suited to becoming the data plane underneath this mess.
 
-> **⚠️ Disclaimer:** **Neosync has been acquired by [Grow Therapy](https://www.growtherapy.com). As a result, this repository is no longer actively maintained. Thank you to all of our OSS and Cloud supporters over the years.**
+## The product: a financial data clean room and sandbox for SMBs and their service providers
 
-## Introduction
+In its simplest framing, you're building "the safe shared workspace for an SMB's financial data." The SMB connects their sources once (QuickBooks, bank, Stripe, payroll). Your platform pulls a referentially-intact copy into an isolated tenant, applies configurable transformations based on who's looking, and exposes that view to the parties the SMB authorizes — a fractional CFO, a lender, an auditor, a tax preparer, or an AI agent acting on behalf of any of them.
 
-[Neosync](https://www.neosync.dev) is an open-source, developer-first way to anonymize PII, generate synthetic data and sync environments for better testing, debugging and developer experience.
+The transformations are the wedge. A fractional CFO doing cash-flow forecasting needs real amounts and real timing but doesn't need customer names or employee SSNs. A lender doing underwriting needs aggregate revenue trends, deposit consistency, and NSF history but not individual customer-level detail. A bookkeeper needs vendor names and transaction memos but not payroll detail. An AI agent building a budget needs categorized historical spend but not counterparty PII. Today, every one of these parties either gets too much access or too little. Your platform gives each one exactly the slice they need, with the rest deterministically tokenized so that joins still work but identities don't leak.
 
-Companies use Neosync to:
+## Why this is more than a permissions tool
 
-1. **Safely test code against production data** - Anonymize sensitive production data in order to safely use it locally for a better testing and developer experience
-2. **Easily reproduce production bugs locally** - Anonymize and subset production data to get a safe, representative data set that you can use to locally reproduce production bugs quickly and efficiently
-3. **High quality data for lower-level environments** - Catch bugs before they hit production when you hydrate your staging and QA environments with production-like data
-4. **Solve GDPR, DPDP, FERPA, HIPAA and more** - Use anonymized and synthetic data to reduce your compliance scope and easily comply with laws like HIPAA, GDPR, and DPDP
-5. **Seed development databases** - Easily seed development databases with synthetic data for unit testing, demos and more
+A naive read of the above is "this is just role-based access control on top of Plaid." It isn't, and the reason matters. Real financial data is relational — a transaction joins to an invoice joins to a customer joins to a project joins to a payroll allocation. Strip out the customer and the chain breaks; mask the customer naively and you can't reconcile. Neosync's FK-aware sync engine plus deterministic transformers preserve those joins across tables and across systems, so a downstream user (human or agent) can still do real work. That's the technically hard part, and it's exactly what the existing codebase does well.
 
-## Features
+The second non-obvious piece: synthetic data for "what if" scenarios. A small business owner asking their AI agent "what would my cash position look like if I hired two salespeople and lost my biggest customer?" needs the agent to fabricate plausible future state grounded in the real historical distributions. Neosync's synthetic generator, retargeted at financial time series, becomes the engine for this. Same machinery, different output — instead of generating safe staging data, it's generating safe future data.
 
-- **Generate synthetic data** based on your schema
-- **Anonymize existing production-data** for a better developer experience
-- **Subset your production database** for local and CI testing using any SQL query
-- **Complete async pipeline** that automatically handles job retries, failures and playback using an event-sourcing model
-- **Referential integrity** for your data automatically
-- **Declarative, GitOps based configs** as a step in your CI pipeline to hydrate your CI DB
-- **Pre-built data transformers** for all major data types
-- **Custom data transformers** using javascript or LLMs
-- **Pre-built integrations** with Postgres, Mysql, S3
+## The buyer and the wedge
 
-## Getting started
+The strongest wedge customer is the fractional CFO firm or the outsourced accounting firm — Pilot, Bench (in its post-bankruptcy form), Paro, FinOptimal, the thousands of regional firms doing the same work. These firms typically serve 20 to 500 SMB clients, and their #1 operational pain is that every client's data lives somewhere different, every engagement requires a fresh "give us access to everything" dance, and their staff (often offshore or contractor) routinely sees PII they shouldn't. Sell them a multi-tenant workspace where each client onboards once, the firm's staff sees a sanitized but fully functional view, and the firm's internal AI agents can operate across the entire client book without any single client's raw data being exposed to the model provider.
 
-Neosync is a fully dockerized setup which makes it easy to get up and running.
+The pricing is per-client-per-month, paid by the firm, and the firm passes it through. ACV scales with the firm's book of business automatically. Once you're inside one firm, the SMB clients themselves become a downstream channel — they discover that the same workspace lets them safely share data with their lender, their insurance broker, their M&A advisor, and their tax preparer, and the platform absorbs each of those relationships.
 
-A [compose.yml](./compose.yml) file at the root contains production image refs that allow you to get up and running with just a few commands without having to build anything on your system.
+The second wedge, slightly later, is the community bank or credit union doing SMB lending. These institutions are losing SMB lending share to fintechs (Bluevine, Enova, OnDeck, Stripe Capital) primarily because their underwriting takes weeks while fintechs underwrite in minutes. The reason fintechs are faster is that they have direct programmatic access to the borrower's transaction data; the community bank has PDFs. Sell the bank a "borrower data room" where the SMB authorizes a sanitized, lender-appropriate view of their financial state, refreshed continuously, with a standard set of underwriting-relevant aggregates (revenue trend, deposit volatility, customer concentration, runway, debt service coverage) computed on top. The bank gets fintech-speed underwriting without ever touching raw PII; the borrower gets a faster decision and doesn't have to email bank statements.
 
-Neosync uses the newer `docker compose` command, so be sure to have that installed on your machine.
+## Where the AI agent layer plugs in
 
-To start Neosync, clone the repo into a local directory, be sure to have docker installed and running, and then run:
+This is the part that makes the play timely rather than just sensible. Every category of SMB-serving software is racing to ship agents — Intuit has agents in QuickBooks, Ramp has agents for spend, every vertical CFO tool has an "ask anything" copilot. The bottleneck on all of these is the same: the agent needs cross-system context to be useful, but giving it cross-system context means handing PII to a model provider and accepting whatever data residency and retention terms come with that.
 
-```sh
-make compose/up
-```
+Your platform becomes the agent context layer for SMB finance. An agent — whether built by you, by the fractional CFO firm, by the bank, or by the SMB themselves — connects to your platform via MCP or a similar protocol. It gets schema-aware, permission-aware, PII-sanitized access to the SMB's full financial state. When the agent needs to take a real action (pay a bill, move money, file a form), the action is staged against a shadow of the real data, validated, and then committed against the real systems through the appropriate connector, with full audit trail. This is the small-business equivalent of #10 from my earlier list, and it's the thing that turns the platform from a data tool into critical infrastructure.
 
-To stop, run:
+## Compliance and trust as a moat
 
-```sh
-make compose/down
-```
+Small business finance is regulated enough to be hard but not so regulated that incumbents have moats from compliance alone. GLBA applies to anyone handling consumer-ish financial data; state privacy laws apply to employee data inside payroll; SOC 2 is table stakes; bank-grade security is required if you want the bank channel. Building this correctly — encryption with customer-managed keys, single-tenant data isolation per SMB, deterministic tokenization with HSM-backed vaults, full audit trails on every transformation and every agent action — is a 12-to-18-month investment that becomes a real moat against later entrants. Neosync's existing audit and Temporal-driven workflow scaffolding is a head start here, but the secrets and key management story has to be rebuilt to bank-grade.
 
-Neosync will now be available on [http://localhost:3000](http://localhost:3000).
+## What the MVP looks like
 
-The production compose pre-seeds with connections and jobs to get you started! Simply run the generate and sync job to watch Neosync in action!
+Concretely, the smallest version that's sellable: connectors for QuickBooks Online, Plaid (covering most SMB banking), Stripe, and Gusto; a transformer library tuned for financial data (vendor name canonicalization, customer tokenization preserving concentration analysis, employee anonymization preserving payroll aggregates); a per-engagement workspace where a fractional CFO firm can invite staff with role-based views; a query API and an MCP server so the firm's own agents and copilots can plug in; and a dead-simple "share this view with my lender" flow as the second-act feature. That's a 6-to-9-month build with a small team if you're forking Neosync, versus probably 18 months from scratch.
 
-## Kubernetes, Auth Mode and more
+## Why now
 
-For more in-depth details on environment variables, Kubernetes deployments, and a production-ready guide, check out the [Deploy Neosync](https://docs.neosync.dev/deploy/introduction) section of our Docs.
-
-## Resources
-
-Some resources to help you along the way:
-
-- [Docs](https://docs.neosync.dev) for comprehensive documentation and guides
-- [Discord](https://discord.com/invite/MFAMgnp4HF) for discussion with the community and Neosync team
-- [X](https://x.com/neosynccloud) for the latest updates
-
-## Contributing
-
-We love contributions big and small. Here are just a few ways that you can contribute to Neosync.
-
-- Join our [Discord](https://discord.com/invite/MFAMgnp4HF) channel and ask us any questions there
-- Open a PR (see our instructions on [developing with Neosync locally](https://docs.neosync.dev/guides/neosync-local-dev))
-- Submit a [feature request](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=enhancement%2C+feature&template=feature_request.md) or [bug report](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=bug&template=bug_report.md)
-
-## Licensing
-
-We strongly believe in free and open source software and make this repo is available under the [MIT expat license](./LICENSE.md).
+Three things converged in the last 18 months that make this the right moment. First, MCP and the broader agent-tool-protocol space have given you a clean way to expose financial data to agents without each integration being bespoke. Second, the SMB AI tooling market has exploded, which means every fractional CFO firm and every SMB-serving fintech is actively shopping for an agent data layer right now and there's no obvious winner. Third, the regulatory environment around AI and financial data is tightening fast enough that "we anonymize before the model sees it" is moving from a nice-to-have to a procurement requirement, especially for anyone selling into banks. The window to be the default data plane underneath SMB financial AI is probably 18 to 24 months wide, and the Neosync codebase is a genuine accelerant for getting there first.
